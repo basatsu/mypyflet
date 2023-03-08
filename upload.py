@@ -19,7 +19,8 @@ from flet import (
     PopupMenuItem,
     colors,
     Icon,
-    AppBar
+    AppBar,
+    border
 
 )
 import pandas as pd
@@ -40,12 +41,12 @@ def main(page: Page):
     page.appbar = AppBar(
         leading=Icon(icons.PALETTE),
         leading_width=40,
-        title=Text("Flet+Pandas CSV Processing"),
+        title=Text("CSV Data Product Processor"),
         center_title=False,
         bgcolor=colors.SURFACE_VARIANT,
         actions=[
-            IconButton(icons.WB_SUNNY_OUTLINED),
-            IconButton(icons.FILTER_3),
+            IconButton(icons.ADMIN_PANEL_SETTINGS),
+            IconButton(icons.DETAILS),
             PopupMenuButton(
                 items=[
                     PopupMenuItem(text="Page 1"),
@@ -79,11 +80,22 @@ def main(page: Page):
             for f in file_picker.result.files:
                 df = pd.read_csv(f.path)
 
-                my_simpledt_table = simpledatatable.CSVDataTable(f.path)
-                page.add(my_simpledt_table.datatable)
+                #特定の文字列で絞り込み
+                df_fil=df[df['name'].str.contains('William')]
 
-                rowcount.value = str(len(df))
-                colcount.value = str(len(df.columns))
+                #my_simpledt_table = simpledatatable.CSVDataTable(f.path)
+
+                my_simpledt_table = simpledatatable.DataFrame(df_fil)  # Initialize simpledt DataFrame object
+                # Extract DataTable instance from simpledt
+                simpledt_dt = my_simpledt_table.datatable
+
+                simpledt_dt.bgcolor = colors.YELLOW # Change background color of generated DataTable
+                simpledt_dt.border = border.all(10, colors.PINK_600) # Add ping border to DataTable
+                page.add(simpledt_dt)
+                
+
+                rowcount.value = str(len(df_fil))
+                colcount.value = str(len(df_fil.columns))
                 page.update()
 
     # add export function
@@ -116,8 +128,10 @@ def main(page: Page):
             on_click=upload_files,
             disabled=True,
         ),
+        Text("行数",size=15),
         rowcount,
         Divider(height=9, thickness=3),
+        Text("列数",size=15),
         colcount,
         ElevatedButton(text="Export", on_click=export_results),
     )
